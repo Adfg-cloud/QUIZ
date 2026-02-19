@@ -27,6 +27,7 @@
 <body>
 
 <h2>¿A qué saga corresponde esta frase?</h2>
+  <p>Aciertos: <span id="contador">0</span></p>
 <p id="frase"></p> <!-- Aquí se mostrará la frase aleatoria -->
 
 <div id="opciones"></div> <!-- Aquí se crearán las opciones dinámicamente -->
@@ -38,6 +39,7 @@
 let lineas = [];  // Array para guardar todas las frases y sus sagas
 let sagas = [];   // Array para guardar todas las sagas únicas
 let fraseActual;  // Objeto de la frase que se está mostrando actualmente
+let aciertos = 0; // contador de respuestas correctas
 
 // Cargar archivo externo 'frases.txt'
 fetch('frases.txt')
@@ -91,18 +93,35 @@ function nuevaFrase() {
 // Evento al pulsar "Comprobar"
 document.getElementById("comprobarBtn").addEventListener("click", () => {
   const radios = document.querySelectorAll("input[name='saga']");
+  let haAcertado = false; // para saber si se ha acertado
+
   radios.forEach(r => {
     const label = r.parentElement;
-    // Comparar opción seleccionada con la correcta (ignorando mayúsculas y espacios)
+
     if (r.value.trim().toLowerCase() === fraseActual.saga.trim().toLowerCase()) {
-      label.classList.add("correcta"); // marcar verde si es correcta
+      label.classList.add("correcta");
+
+      // Si esta opción estaba seleccionada → es un acierto
+      if (r.checked) {
+        haAcertado = true;
+      }
+
     } else {
-      label.classList.add("incorrecta"); // marcar rojo si es incorrecta
+      label.classList.add("incorrecta");
     }
-    r.disabled = true; // desactivar selección después de comprobar
+
+    r.disabled = true;
   });
-  document.getElementById("comprobarBtn").disabled = true; // desactivar botón para que no se pulse otra vez
+
+  // Si ha acertado → sumamos 1
+  if (haAcertado) {
+    aciertos++;
+    document.getElementById("contador").textContent = aciertos;
+  }
+
+  document.getElementById("comprobarBtn").disabled = true;
 });
+
 
 // Evento al pulsar "Siguiente frase"
 document.getElementById("siguienteBtn").addEventListener("click", nuevaFrase);
@@ -110,4 +129,5 @@ document.getElementById("siguienteBtn").addEventListener("click", nuevaFrase);
 
 </body>
 </html>
+
 
