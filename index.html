@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Quiz de Frases</title>
+<style>
+  /* Estilo básico para la página */
+  body { font-family: Arial, sans-serif; margin: 40px; }
+
+  /* Estilo para cada opción de respuesta */
+  .opcion { 
+    display: block; 
+    margin: 10px 0; 
+    padding: 8px; 
+    border: 1px solid #ccc; 
+    border-radius: 4px; 
+    cursor: pointer; 
+  }
+
+  /* Opción correcta resaltada en verde */
+  .correcta { background-color: #c8f7c5; }
+
+  /* Opciones incorrectas resaltadas en rojo */
+  .incorrecta { background-color: #f7c5c5; }
+</style>
+</head>
+<body>
+
+<h2>¿A qué saga corresponde esta frase?</h2>
+<p id="frase"></p> <!-- Aquí se mostrará la frase aleatoria -->
+
+<div id="opciones"></div> <!-- Aquí se crearán las opciones dinámicamente -->
+
+<button id="comprobarBtn">Comprobar</button> <!-- Botón para comprobar la respuesta -->
+<button id="siguienteBtn">Siguiente frase</button> <!-- Botón para cargar otra frase -->
+
+<script>
+let lineas = [];  // Array para guardar todas las frases y sus sagas
+let sagas = [];   // Array para guardar todas las sagas únicas
+let fraseActual;  // Objeto de la frase que se está mostrando actualmente
+
+// Cargar archivo externo 'frases.txt'
+fetch('frases.txt')
+  .then(response => response.text()) // Convertir el archivo a texto
+  .then(texto => {
+    // Separar cada línea y limpiar espacios innecesarios
+    lineas = texto.trim().split(/\r?\n/).map(linea => {
+      const partes = linea.split("|"); // Separar frase y saga por el '|'
+      return { 
+        texto: partes[0].trim(),  // Limpiar espacios de la frase
+        saga: partes[1].trim()    // Limpiar espacios de la saga
+      };
+    });
+
+    // Crear lista única de sagas para las opciones
+    sagas = [...new Set(lineas.map(l => l.saga))];
+
+    // Mostrar la primera frase
+    nuevaFrase();
+  })
+  .catch(err => alert("Error cargando el archivo frases.txt: " + err));
+
+// Función para mostrar una nueva frase aleatoria
+function nuevaFrase() {
+  if (lineas.length === 0) return; // No hacer nada si no hay frases
+
+  // Limpiar opciones previas
+  document.getElementById("opciones").innerHTML = "";
+  document.getElementById("comprobarBtn").disabled = false; // Activar botón "Comprobar"
+
+  // Seleccionar una frase aleatoria del array
+  fraseActual = lineas[Math.floor(Math.random() * lineas.length)];
+  document.getElementById("frase").textContent = fraseActual.texto;
+
+  // Elegir opciones: 2 distractores + la correcta
+  let opcionesAleatorias = sagas.filter(s => s !== fraseActual.saga); // quitar la correcta
+  opcionesAleatorias = opcionesAleatorias.sort(() => 0.5 - Math.random()).slice(0, 2); // tomar 2 distractores al azar
+  opcionesAleatorias.push(fraseActual.saga); // agregar la correcta
+  opcionesAleatorias = opcionesAleatorias.sort(() => 0.5 - Math.random()); // mezclar todas
+
+  // Crear los botones de opción en la página
+  const divOpciones = document.getElementById("opciones");
+  opcionesAleatorias.forEach(opcion => {
+    const label = document.createElement("label");
+    label.className = "opcion";
+    label.innerHTML = `<input type="radio" name="saga" value="${opcion}"> ${opcion}`;
+    divOpciones.appendChild(label);
+  });
+}
+
+// Evento al pulsar "Comprobar"
+document.getElementById("comprobarBtn").addEventListener("click", () => {
+  const radios = document.querySelectorAll("input[name='saga']");
+  radios.forEach(r => {
+    const label = r.parentElement;
+    // Comparar opción seleccionada con la correcta (ignorando mayúsculas y espacios)
+    if (r.value.trim().toLowerCase() === fraseActual.saga.trim().toLowerCase()) {
+      label.classList.add("correcta"); // marcar verde si es correcta
+    } else {
+      label.classList.add("incorrecta"); // marcar rojo si es incorrecta
+    }
+    r.disabled = true; // desactivar selección después de comprobar
+  });
+  document.getElementById("comprobarBtn").disabled = true; // desactivar botón para que no se pulse otra vez
+});
+
+// Evento al pulsar "Siguiente frase"
+document.getElementById("siguienteBtn").addEventListener("click", nuevaFrase);
+</script>
+
+</body>
+</html>
+
